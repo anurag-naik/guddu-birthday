@@ -22,7 +22,6 @@
       min-height: 100vh;
       overflow-x: hidden;
 
-      /* romantic background */
       background:
         radial-gradient(900px 500px at 20% 10%, rgba(255, 77, 136, 0.22), transparent 60%),
         radial-gradient(900px 500px at 80% 20%, rgba(90, 200, 250, 0.22), transparent 60%),
@@ -105,13 +104,29 @@
       flex-direction: column;
     }
 
-    /* Pages */
+    /* Pages with smooth fade-in */
     .page{
       display: none;
       padding: 22px 18px 18px;
       flex: 1;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 600ms ease, transform 600ms ease;
     }
-    .page.active{ display: block; }
+    .page.active{
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* subtle glow only on last page */
+    .page.endGlow{
+      background: radial-gradient(
+        600px 300px at 50% 20%,
+        rgba(255, 122, 166, 0.18),
+        transparent 70%
+      );
+    }
 
     .pageInner{
       max-width: 860px;
@@ -178,7 +193,7 @@
       opacity: 0.92;
     }
 
-    /* little floating glow orbs behind title */
+    /* little floating glow orbs */
     .orbs{
       position: relative;
       height: 160px;
@@ -245,7 +260,7 @@
       margin: 14px auto 0;
       width: 100%;
       max-width: 900px;
-      height: min(55vh, 520px); /* portrait-friendly */
+      height: min(55vh, 520px);
       background: linear-gradient(180deg, #ffffff, #f7f7f7);
       border-radius: 22px;
       overflow: hidden;
@@ -272,9 +287,9 @@
     .slide img{
       width: 100%;
       height: 100%;
-      object-fit: contain;   /* show full portrait */
+      object-fit: contain;
       display: block;
-      max-width: 70%;        /* portrait framed look */
+      max-width: 70%;
       max-height: 100%;
       border-radius: 18px;
       box-shadow: 0 16px 38px rgba(0,0,0,0.12);
@@ -382,7 +397,6 @@
       100% { transform: scale(1); }
     }
 
-    /* Small footer hint */
     .tiny{
       text-align:center;
       font-size: 12.5px;
@@ -410,9 +424,7 @@
     <div class="overlayCard">
       <div class="emoji">💝</div>
       <h2>Ready for the surprise?</h2>
-      <p>
-        Tap the button and your greeting card will begin… with music ✨
-      </p>
+      <p>Tap the button and your greeting card will begin… with music ✨</p>
       <div style="margin-top:14px;">
         <button class="btn primary" id="startBtn">Ready for surprise? ❤️</button>
       </div>
@@ -582,29 +594,33 @@ a lifetime with you.`;
     const toggleMusicBtn = document.getElementById("toggleMusicBtn");
 
     function showPage(i){
-      pages.forEach((p, idx) => p.classList.toggle("active", idx === i));
+      pages.forEach((p, idx) => {
+        p.classList.toggle("active", idx === i);
+        p.classList.toggle("endGlow", idx === pages.length - 1 && idx === i);
+      });
+
       pageIndex = i;
 
       backBtn.style.display = (pageIndex === 0) ? "none" : "inline-flex";
       nextPageBtn.textContent = (pageIndex === pages.length - 1) ? "Replay 💞" : "Next 💗";
-
-      // only show music toggle after start
       toggleMusicBtn.style.display = started ? "inline-flex" : "none";
 
-      // start slideshow only when page 3 is active
-      if (pageIndex === 2) {
-        startAuto(true);
-      } else {
-        stopAuto();
-      }
+      if (pageIndex === 2) startAuto(true);
+      else stopAuto();
 
-      // small flourish: burst hearts when page changes
+      // light heart burst on page change
       for (let k=0; k<4; k++) spawnHeart();
+
+      // special effect on last page
+      if (pageIndex === pages.length - 1) {
+        for (let j = 0; j < 18; j++) {
+          setTimeout(spawnHeart, j * 120);
+        }
+      }
     }
 
     nextPageBtn.addEventListener("click", () => {
       if (pageIndex === pages.length - 1) {
-        // replay to first page (keep music playing)
         showPage(0);
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
@@ -629,7 +645,6 @@ a lifetime with you.`;
         await song.play();
         toggleMusicBtn.textContent = "⏸ Pause song";
       } catch (e){
-        // if it fails, user can still press play via the toggle
         toggleMusicBtn.textContent = "▶ Play song";
       }
     }
@@ -664,7 +679,7 @@ a lifetime with you.`;
     /***********************
      * AGE (animated)
      ***********************/
-    const birthDate = new Date(2002, 1, 18, 12, 59); // Feb=1 (0-based month)
+    const birthDate = new Date(2002, 1, 18, 12, 59); // Feb=1 (0-based)
     const ageValue = document.getElementById("ageValue");
     let lastAgeText = "";
 
@@ -692,7 +707,7 @@ a lifetime with you.`;
         ageValue.textContent = newText;
 
         ageValue.classList.remove("animate");
-        void ageValue.offsetWidth; // reflow to retrigger animation
+        void ageValue.offsetWidth;
         ageValue.classList.add("animate");
 
         lastAgeText = newText;
@@ -712,12 +727,12 @@ a lifetime with you.`;
       const h = document.createElement("div");
       h.className = "heart";
       h.textContent = heartChars[Math.floor(Math.random()*heartChars.length)];
-      const x = Math.random() * 100;             // vw
-      const drift = (Math.random()*30 - 15);     // vw
-      const rot = (Math.random()*220 - 110);     // deg
-      const size = 14 + Math.random()*18;        // px
-      const dur = 6 + Math.random()*7;           // seconds
-      const delay = Math.random()*0.6;           // seconds
+      const x = Math.random() * 100;
+      const drift = (Math.random()*30 - 15);
+      const rot = (Math.random()*220 - 110);
+      const size = 14 + Math.random()*18;
+      const dur = 6 + Math.random()*7;
+      const delay = Math.random()*0.6;
 
       h.style.setProperty("--x", x + "vw");
       h.style.setProperty("--drift", drift + "vw");
@@ -808,7 +823,7 @@ a lifetime with you.`;
       }
     });
 
-    // swipe on mobile
+    // swipe support
     let touchStartX = null;
     slider.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].clientX;
@@ -826,11 +841,9 @@ a lifetime with you.`;
 
     buildDots();
     setActive(0);
-
-    // ensure correct button label after load
     showPage(0);
 
-    // small heart burst on scroll (romantic)
+    // light heart burst on scroll
     let lastBurst = 0;
     window.addEventListener("scroll", () => {
       const t = Date.now();
