@@ -53,6 +53,52 @@
       100% { transform: translate(calc(var(--x) + var(--drift)), 110vh) rotate(var(--rot)); opacity: 0; }
     }
 
+    /* Heart wipe overlay */
+    .heartWipe{
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      place-items: center;
+      pointer-events: none;
+    }
+    .heartWipe::before{
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 10, 14, 0.28);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+    }
+    .heartSvg{
+      width: min(50vmin, 420px);
+      height: auto;
+      filter: drop-shadow(0 18px 45px rgba(0,0,0,0.25));
+      transform: scale(0.05);
+      opacity: 0;
+      fill: var(--accent);
+    }
+    .heartWipe.active{
+      display: grid;
+    }
+    .heartWipe.active::before{
+      animation: dimBg 900ms cubic-bezier(.22,1,.36,1) forwards;
+    }
+    .heartWipe.active .heartSvg{
+      animation: heartPopWipe 900ms cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes dimBg{
+      0% { opacity: 0; }
+      45%{ opacity: 1; }
+      100%{ opacity: 0; }
+    }
+    @keyframes heartPopWipe{
+      0%   { transform: scale(0.08); opacity: 0; }
+      25%  { transform: scale(1.0); opacity: 1; }
+      55%  { transform: scale(1.8); opacity: 1; }
+      100% { transform: scale(15); opacity: 0; }
+    }
+
     /* Start overlay */
     .overlay{
       position: fixed;
@@ -172,7 +218,7 @@
       display: inline-block;
     }
     .title .shine{
-      background: linear-gradient(90deg, #1b1b1b, #ff3b7a, #1b1b1b);
+      background: linear-gradient(90deg, #1b1b1b, var(--accent), #1b1b1b);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -212,16 +258,13 @@
     .orb.one{ left: 10%; top: 22px; background: rgba(255, 59, 122, 0.25); animation-delay: 0s; }
     .orb.two{ left: 42%; top: 0px;  background: rgba(90, 200, 250, 0.26); animation-delay: 0.8s; }
     .orb.three{ right: 12%; top: 34px; background: rgba(255, 122, 166, 0.25); animation-delay: 1.6s; }
-
     @keyframes floaty{
       0%,100%{ transform: translateY(0) scale(1); }
       50%{ transform: translateY(-16px) scale(1.05); }
     }
 
     /* Page 2: message */
-    .messageBlock{
-      padding: 10px 8px 0;
-    }
+    .messageBlock{ padding: 10px 8px 0; }
     .messageBlock h2{
       margin: 0;
       text-align: center;
@@ -320,11 +363,7 @@
       padding: 14px 10px 0;
       flex-wrap: wrap;
     }
-    .dots{
-      display:flex;
-      gap: 8px;
-      align-items:center;
-    }
+    .dots{ display:flex; gap: 8px; align-items:center; }
     .dot{
       width: 9px;
       height: 9px;
@@ -340,14 +379,8 @@
     }
 
     /* Page 4: ending */
-    .end{
-      text-align: center;
-      padding: 18px 8px 0;
-    }
-    .end h2{
-      margin: 0;
-      font-size: 20px;
-    }
+    .end{ text-align: center; padding: 18px 8px 0; }
+    .end h2{ margin: 0; font-size: 20px; }
     .endCard{
       margin: 14px auto 0;
       max-width: 820px;
@@ -362,19 +395,9 @@
     }
 
     /* Age box (animated) */
-    .ageBox{
-      margin-top: 16px;
-      text-align: center;
-    }
-    .bornText{
-      font-size: 14px;
-      opacity: 0.85;
-    }
-    .ageText{
-      margin-top: 8px;
-      font-size: 15px;
-      opacity: 0.9;
-    }
+    .ageBox{ margin-top: 16px; text-align: center; }
+    .bornText{ font-size: 14px; opacity: 0.85; }
+    .ageText{ margin-top: 8px; font-size: 15px; opacity: 0.9; }
     .ageValue{
       margin-top: 6px;
       font-size: 20px;
@@ -382,11 +405,7 @@
       letter-spacing: 0.3px;
       transition: filter 250ms ease;
     }
-    .ageSmall{
-      margin-top: 8px;
-      font-size: 13px;
-      opacity: 0.85;
-    }
+    .ageSmall{ margin-top: 8px; font-size: 13px; opacity: 0.85; }
     .ageValue.animate{
       animation: agePop 420ms ease;
       filter: drop-shadow(0 10px 18px rgba(255, 59, 122, 0.25));
@@ -410,7 +429,7 @@
     }
 
     @media (prefers-reduced-motion: reduce){
-      .heart, .slide, .title .shine, .orb{ animation: none !important; transition: none !important; }
+      .heart, .slide, .title .shine, .orb, .heartWipe.active::before, .heartWipe.active .heartSvg{ animation: none !important; transition: none !important; }
       .btn{ transition: none !important; }
     }
   </style>
@@ -418,6 +437,13 @@
 
 <body>
   <div class="hearts" id="hearts"></div>
+
+  <!-- Heart wipe transition overlay -->
+  <div class="heartWipe" id="heartWipe" aria-hidden="true">
+    <svg viewBox="0 0 512 512" class="heartSvg" aria-hidden="true">
+      <path d="M256 464s-44.8-26.4-89.6-63.2C96 350.4 32 286.4 32 196.8 32 129.6 81.6 80 148.8 80c35.2 0 68.8 16 89.6 41.6C259.2 96 292.8 80 328 80 395.2 80 444.8 129.6 444.8 196.8c0 89.6-64 153.6-134.4 204.8C300.8 437.6 256 464 256 464z"/>
+    </svg>
+  </div>
 
   <!-- START OVERLAY -->
   <div class="overlay" id="overlay">
@@ -536,7 +562,7 @@
 
   <script>
     /***********************
-     * CONTENT YOU PROVIDED
+     * CONTENT
      ***********************/
     const FULL_MESSAGE = `Guddu,
 
@@ -576,6 +602,32 @@ a lifetime with you.`;
     ];
 
     /***********************
+     * SET MESSAGE CONTENT
+     ***********************/
+    document.getElementById("customMessage").textContent = FULL_MESSAGE;
+    document.getElementById("endText").textContent = `${LAST_LINE}\n\n${END_EXTRA}`;
+
+    /***********************
+     * HEART WIPE TRANSITION
+     ***********************/
+    const heartWipe = document.getElementById("heartWipe");
+    let isTransitioning = false;
+
+    function heartTransition(callback){
+      if (isTransitioning) return;
+      isTransitioning = true;
+
+      heartWipe.classList.add("active");
+
+      setTimeout(() => { callback(); }, 450);
+
+      setTimeout(() => {
+        heartWipe.classList.remove("active");
+        isTransitioning = false;
+      }, 950);
+    }
+
+    /***********************
      * PAGE FLOW
      ***********************/
     const overlay = document.getElementById("overlay");
@@ -608,10 +660,8 @@ a lifetime with you.`;
       if (pageIndex === 2) startAuto(true);
       else stopAuto();
 
-      // light heart burst on page change
       for (let k=0; k<4; k++) spawnHeart();
 
-      // special effect on last page
       if (pageIndex === pages.length - 1) {
         for (let j = 0; j < 18; j++) {
           setTimeout(spawnHeart, j * 120);
@@ -620,18 +670,23 @@ a lifetime with you.`;
     }
 
     nextPageBtn.addEventListener("click", () => {
-      if (pageIndex === pages.length - 1) {
-        showPage(0);
+      if (isTransitioning) return;
+      const target = (pageIndex === pages.length - 1) ? 0 : (pageIndex + 1);
+
+      heartTransition(() => {
+        showPage(target);
         window.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        showPage(pageIndex + 1);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      });
     });
 
     backBtn.addEventListener("click", () => {
-      showPage(Math.max(0, pageIndex - 1));
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (isTransitioning) return;
+      const target = Math.max(0, pageIndex - 1);
+
+      heartTransition(() => {
+        showPage(target);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
     });
 
     /***********************
@@ -667,14 +722,7 @@ a lifetime with you.`;
       await playSong();
       showPage(0);
     }
-
     startBtn.addEventListener("click", startExperience);
-
-    /***********************
-     * SET MESSAGE CONTENT
-     ***********************/
-    document.getElementById("customMessage").textContent = FULL_MESSAGE;
-    document.getElementById("endText").textContent = `${LAST_LINE}\n\n${END_EXTRA}`;
 
     /***********************
      * AGE (animated)
@@ -705,11 +753,9 @@ a lifetime with you.`;
 
       if (newText !== lastAgeText) {
         ageValue.textContent = newText;
-
         ageValue.classList.remove("animate");
         void ageValue.offsetWidth;
         ageValue.classList.add("animate");
-
         lastAgeText = newText;
       }
     }
